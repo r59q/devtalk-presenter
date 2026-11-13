@@ -1,0 +1,26 @@
+{
+  "name": "devtalk-presenter",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Animated, interactive browser presentations written as code.",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test \"src/**/*.test.ts\"",
+    "check": "npm run typecheck && npm test && npm run build",
+    "new": "node scripts/new-presentation.mjs",
+    "remove": "node scripts/remove-presentation.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.8"
+  }
+}
