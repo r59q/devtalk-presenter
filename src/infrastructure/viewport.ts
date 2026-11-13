@@ -1,0 +1,37 @@
+import { stage } from '../domain/scene/stage.ts'
+
+/** A canvas filling the window, with the stage scaled to fit and centred inside it. */
+export class Viewport {
+  readonly context: CanvasRenderingContext2D
+  /** Holds DOM elements placed in stage coordinates, on top of the canvas. */
+  readonly overlay: HTMLElement
+  readonly #canvas: HTMLCanvasElement
+
+  constructor(root: HTMLElement) {
+    this.#canvas = document.createElement('canvas')
+    this.overlay = document.createElement('div')
+    this.overlay.className = 'overlay'
+    root.append(this.#canvas, this.overlay)
+
+    const context = this.#canvas.getContext('2d')
+    if (!context) throw new Error('Canvas 2D is not supported')
+    this.context = context
+
+    this.fit()
+    window.addEventListener('resize', () => this.fit())
+  }
+
+  fit(): void {
+    const { innerWidth: width, innerHeight: height, devicePixelRatio: density = 1 } = window
+    const scale = Math.min(width / stage.width, height / stage.height)
+    const left = (width - stage.width * scale) / 2
+    const top = (height - stage.height * scale) / 2
+
+    this.#canvas.width = Math.round(width * density)
+    this.#canvas.height = Math.round(height * density)
+    this.#canvas.style.width = `${width}px`
+    this.#canvas.style.height = `${height}px`
+    this.context.setTransform(scale * density, 0, 0, scale * density, left * density, top * density)
+    this.overlay.style.transform = `translate(${left}px, ${top}px) scale(${scale})`
+  }
+}

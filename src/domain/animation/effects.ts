@@ -48,11 +48,16 @@ export function rotateTo(element: Element, rotation: number, options?: TweenOpti
   return animate(element, { rotation }, options)
 }
 
-export function recolor(target: { color: Color }, color: ColorValue, options?: TweenOptions): Animation {
+type Colored = { color: Color } | { fill: Color | undefined }
+
+/** Blends to another color: the color of text and lines, the fill of shapes. */
+export function recolor(target: Colored, color: ColorValue, options?: TweenOptions): Animation {
   const destination = paint(color)
+  const colors = target as Record<string, Color | undefined>
+  const key = 'color' in target ? 'color' : 'fill'
   return tween(() => {
-    const origin = target.color
-    return (t) => (target.color = mixColors(origin, destination, t))
+    const origin = colors[key] ?? { ...destination, a: 0 }
+    return (t) => (colors[key] = mixColors(origin, destination, t))
   }, options)
 }
 
