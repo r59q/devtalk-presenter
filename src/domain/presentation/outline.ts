@@ -18,34 +18,39 @@ export class Outline {
     this.#stepCounts = stepCounts
   }
 
+  get slideCount(): number {
+    return this.#stepCounts.length
+  }
+
   get first(): Position {
     return { slide: 0, step: 0 }
   }
 
   get last(): Position {
     const slide = this.#stepCounts.length - 1
-    return { slide, step: this.#lastStep(slide) }
+    return { slide, step: this.lastStep(slide) }
   }
 
   next({ slide, step }: Position): Position | undefined {
-    if (step < this.#lastStep(slide)) return { slide, step: step + 1 }
+    if (step < this.lastStep(slide)) return { slide, step: step + 1 }
     if (slide < this.#stepCounts.length - 1) return { slide: slide + 1, step: 0 }
     return undefined
   }
 
   previous({ slide, step }: Position): Position | undefined {
     if (step > 0) return { slide, step: step - 1 }
-    if (slide > 0) return { slide: slide - 1, step: this.#lastStep(slide - 1) }
+    if (slide > 0) return { slide: slide - 1, step: this.lastStep(slide - 1) }
     return undefined
   }
 
   /** The nearest valid position, e.g. after slides were removed from a script. */
   clamp({ slide, step }: Position): Position {
     const validSlide = clamp(Math.trunc(slide), 0, this.#stepCounts.length - 1)
-    return { slide: validSlide, step: clamp(Math.trunc(step), 0, this.#lastStep(validSlide)) }
+    return { slide: validSlide, step: clamp(Math.trunc(step), 0, this.lastStep(validSlide)) }
   }
 
-  #lastStep(slide: number): number {
+  /** The number of steps `slide` has after its entrance. */
+  lastStep(slide: number): number {
     return this.#stepCounts[slide] - 1
   }
 }

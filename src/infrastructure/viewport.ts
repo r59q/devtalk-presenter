@@ -1,13 +1,15 @@
 import { stage } from '../domain/scene/stage.ts'
 
-/** A canvas filling the window, with the stage scaled to fit and centred inside it. */
+/** A canvas filling its container, with the stage scaled to fit and centred inside it. */
 export class Viewport {
   readonly context: CanvasRenderingContext2D
   /** Holds DOM elements placed in stage coordinates, on top of the canvas. */
   readonly overlay: HTMLElement
+  readonly #root: HTMLElement
   readonly #canvas: HTMLCanvasElement
 
   constructor(root: HTMLElement) {
+    this.#root = root
     this.#canvas = document.createElement('canvas')
     this.overlay = document.createElement('div')
     this.overlay.className = 'overlay'
@@ -18,11 +20,12 @@ export class Viewport {
     this.context = context
 
     this.fit()
-    window.addEventListener('resize', () => this.fit())
+    new ResizeObserver(() => this.fit()).observe(root)
   }
 
   fit(): void {
-    const { innerWidth: width, innerHeight: height, devicePixelRatio: density = 1 } = window
+    const { clientWidth: width, clientHeight: height } = this.#root
+    const density = window.devicePixelRatio || 1
     const scale = Math.min(width / stage.width, height / stage.height)
     const left = (width - stage.width * scale) / 2
     const top = (height - stage.height * scale) / 2

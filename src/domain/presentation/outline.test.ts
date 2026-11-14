@@ -19,6 +19,8 @@ test('going back from an entrance lands on the last step of the previous slide',
 test('knows its ends and clamps positions into range', () => {
   assert.deepEqual(outline.first, { slide: 0, step: 0 })
   assert.deepEqual(outline.last, { slide: 2, step: 2 })
+  assert.equal(outline.slideCount, 3)
+  assert.equal(outline.lastStep(1), 0)
   assert.deepEqual(outline.clamp({ slide: 9, step: 9 }), { slide: 2, step: 2 })
   assert.deepEqual(outline.clamp({ slide: -1, step: 4 }), { slide: 0, step: 1 })
 })

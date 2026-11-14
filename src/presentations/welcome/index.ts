@@ -30,14 +30,18 @@ import {
 import logo from './logo.svg'
 
 export default presentation('Welcome to Devtalk Presenter', [
-  slide('Title', ({ add, enter }) => {
+  slide('Title', ({ add, enter, notes }) => {
     add(sketch(drift))
     const title = add(text('Devtalk Presenter', { size: 150, weight: 800, y: 470 }))
     const subtitle = add(text('Presentations, written as code', { size: 52, color: palette.muted, y: 600 }))
     enter(sequence(popIn(title), typewrite(subtitle)))
+    notes(`
+      These are speaker notes. Only the speaker view shows them.
+      Press S in the presentation to open it in a second window.
+    `)
   }),
 
-  slide('Slides are scripts', ({ add, enter, step }) => {
+  slide('Slides are scripts', ({ add, enter, step, notes }) => {
     const heading = add(text('Slides are scripts', { size: 88, weight: 800, y: 170 }))
     const panel = add(rect({ width: 1160, height: 440, radius: 28, y: 540, fill: palette.surface, stroke: palette.border, lineWidth: 2 }))
     const snippet = add(
@@ -55,6 +59,8 @@ export default presentation('Welcome to Devtalk Presenter', [
     const hint = add(text('Save the file and the browser reloads right on this step', { size: 40, color: palette.muted, y: 900 }))
     enter(slideIn(heading, 0, -60), fadeIn(panel), delay(0.4, typewrite(snippet)))
     step(slideIn(hint, 0, 40))
+    notes('Each press of the right arrow, or a click, plays the next step.')
+    notes('Speaker notes come from notes() in the slide script, just like these.')
   }),
 
   slide('Text morphs into text', ({ add, enter, step }) => {

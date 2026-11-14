@@ -5,6 +5,7 @@ import { renderIndex } from './infrastructure/index-page.ts'
 import { discoverPresentations } from './infrastructure/presentation-modules.ts'
 import { parseRoute } from './infrastructure/route.ts'
 import { startShow } from './infrastructure/show.ts'
+import { startSpeakerView } from './infrastructure/speaker-view.ts'
 
 const root = document.querySelector<HTMLElement>('#app')
 if (!root) throw new Error('Missing #app element')
@@ -19,10 +20,11 @@ const catalog = new Catalog(entries)
 const route = parseRoute(location.hash)
 const entry = route && catalog.find(route.id)
 const failure = route && broken.find(({ id }) => id === route.id)
+const start = new URLSearchParams(location.search).has('speaker') ? startSpeakerView : startShow
 
 try {
   if (failure) throw failure.error
-  if (route && entry) await startShow(root, entry, route.position)
+  if (route && entry) await start(root, entry, route.position)
   else renderIndex(root, catalog, broken)
 } catch (error) {
   renderError(root, error)

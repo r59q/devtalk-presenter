@@ -22,7 +22,9 @@ body {
 }
 
 canvas {
-  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 
 .overlay {
@@ -133,4 +135,107 @@ canvas {
 
 .back {
   color: var(--accent);
+}
+
+.speaker {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 1.5rem;
+  box-sizing: border-box;
+  padding: 1.5rem;
+}
+
+.speaker header {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 1.5rem;
+  align-items: baseline;
+}
+
+.speaker h1 {
+  flex: 1;
+  margin: 0;
+  overflow: hidden;
+  font-size: 1.8rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.place {
+  color: var(--muted);
+  font-size: 1.2rem;
+}
+
+.timer {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  font-size: 2.4rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.speaker .main {
+  container-type: size;
+}
+
+.current {
+  width: min(100cqw, 100cqh * 16 / 9);
+  aspect-ratio: 16 / 9;
+  margin: 0 auto;
+}
+
+.speaker aside {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.speaker h2 {
+  margin: 0 0 0.5rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.frame {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #30363d;
+  border-radius: 12px;
+}
+
+.upcoming {
+  flex: none;
+  aspect-ratio: 16 / 9;
+  margin-bottom: 1.5rem;
+}
+
+.upcoming.finished canvas {
+  visibility: hidden;
+}
+
+.upcoming.finished::after {
+  content: 'End of the talk';
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  font-size: 1.4rem;
+}
+
+.notes {
+  flex: 1;
+  overflow: auto;
+  font-size: 1.6rem;
+  line-height: 1.5;
+  white-space: pre-line;
 }
