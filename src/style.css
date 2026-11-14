@@ -1,0 +1,102 @@
+:root {
+  color-scheme: dark;
+  --background: #0d1117;
+  --foreground: #e6edf3;
+  --muted: #8b949e;
+  --accent: #58a6ff;
+  font-family: Inter, 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+#app {
+  position: fixed;
+  inset: 0;
+}
+
+canvas {
+  display: block;
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1920px;
+  height: 1080px;
+  transform-origin: 0 0;
+  pointer-events: none;
+}
+
+.field {
+  position: absolute;
+  box-sizing: border-box;
+  padding: 0.35em 0.6em;
+  border: 3px solid var(--accent);
+  border-radius: 16px;
+  background: rgb(13 17 23 / 85%);
+  color: var(--foreground);
+  font: inherit;
+  font-weight: 500;
+  text-align: center;
+  outline: none;
+  pointer-events: auto;
+}
+
+.field:focus {
+  box-shadow: 0 0 0 8px rgb(88 166 255 / 25%);
+}
+
+.catalog {
+  position: absolute;
+  inset: 0;
+  overflow: auto;
+  padding: 10vh 10vw;
+}
+
+.catalog h1 {
+  margin: 0 0 2rem;
+  font-size: 3rem;
+}
+
+.hint {
+  color: var(--muted);
+}
+
+.presentations {
+  display: grid;
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.presentation {
+  display: grid;
+  gap: 0.25rem;
+  padding: 1.25rem 1.5rem;
+  border: 1px solid #30363d;
+  border-radius: 12px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.presentation:hover,
+.presentation:focus-visible {
+  border-color: var(--accent);
+}
+
+.presentation strong {
+  font-size: 1.4rem;
+}
+
+.presentation span {
+  color: var(--muted);
+}
