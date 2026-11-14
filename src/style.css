@@ -100,3 +100,37 @@ canvas {
 .presentation span {
   color: var(--muted);
 }
+
+.presentation.broken {
+  border-color: #ff7b72;
+}
+
+.problem {
+  position: absolute;
+  inset: 0;
+  overflow: auto;
+  padding: 10vh 10vw;
+}
+
+.problem h1 {
+  margin: 0 0 1.5rem;
+  color: #ff7b72;
+  font-size: 2.5rem;
+}
+
+.problem .message {
+  font-size: 1.4rem;
+}
+
+.stack {
+  overflow: auto;
+  padding: 1rem 1.25rem;
+  border: 1px solid #30363d;
+  border-radius: 12px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.back {
+  color: var(--accent);
+}
