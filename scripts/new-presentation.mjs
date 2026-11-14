@@ -18,9 +18,10 @@ const title = name
 const script = `import { fadeIn, morph, palette, popIn, presentation, slide, text } from '../../authoring.ts'
 
 export default presentation('${title}', [
-  slide('Title', ({ add, enter }) => {
+  slide('Title', ({ add, enter, notes }) => {
     const heading = add(text('${title}', { size: 120, weight: 800 }))
     enter(popIn(heading))
+    notes('Press S to open the speaker view, which shows these notes.')
   }),
 
   slide('Next', ({ add, enter, step }) => {

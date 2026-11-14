@@ -16,6 +16,7 @@ Read `README.md` first. It describes the authoring API and the architecture. Thi
 - `morph(from, to)` hides `to` and adds it to the scene by itself, so there is no need to `add` it first.
 - Text that depends on audience input should be a function, e.g. `text(() => name.value)`. A function is evaluated on every frame.
 - Positions are in stage pixels on a 1920×1080 stage. `x` and `y` give an element's centre, except for `code()`, where `x` is the left edge.
+- Put what the speaker should say in `notes(...)` inside the slide script, not in an on-screen element.
 - Steps play in order. Animations passed to a single `step(...)` call run in parallel. Use `sequence`, `stagger` and `delay` to arrange animations in time within a step.
 
 ## Changing the engine
