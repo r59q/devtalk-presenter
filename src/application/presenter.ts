@@ -48,6 +48,11 @@ export class Presenter {
     return this.#playback !== undefined
   }
 
+  /** The speaker notes of the slide on screen. */
+  get notes(): string {
+    return this.#slide.notes
+  }
+
   /**
    * Shows a position. Every step before it is applied instantly; the step itself is
    * animated when `animate` is set, which replays it after a live reload.

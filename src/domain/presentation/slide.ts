@@ -14,6 +14,8 @@ export interface SlideBuilder {
   enter(...animations: Animation[]): void
   /** Animations that play together on the next press of the right arrow. */
   step(...animations: Animation[]): void
+  /** Speaker notes for this slide. Only the speaker view shows them. Several calls add paragraphs. */
+  notes(text: string): void
 }
 
 export type SlideScript = (builder: SlideBuilder) => void
@@ -22,6 +24,7 @@ export type SlideScript = (builder: SlideBuilder) => void
 export interface BuiltSlide {
   readonly scene: Scene
   readonly steps: readonly Animation[]
+  readonly notes: string
 }
 
 export class Slide {
@@ -38,6 +41,7 @@ export class Slide {
     const scene = new Scene()
     const entrance: Animation[] = []
     const steps: Animation[] = []
+    const notes: string[] = []
 
     this.#script({
       add: (element, ...more) => {
@@ -47,8 +51,18 @@ export class Slide {
       field: (id, options) => scene.add(new FieldElement(id, responses, options)),
       enter: (...animations) => entrance.push(...animations),
       step: (...animations) => steps.push(parallel(...animations)),
+      notes: (text) => notes.push(tidy(text)),
     })
 
-    return { scene, steps: [parallel(...entrance), ...steps] }
+    return { scene, steps: [parallel(...entrance), ...steps], notes: notes.join('\n\n') }
   }
+}
+
+/** Drops the indentation that comes with writing notes as an indented template string. */
+function tidy(text: string): string {
+  return text
+    .split('\n')
+    .map((line) => line.trim())
+    .join('\n')
+    .trim()
 }

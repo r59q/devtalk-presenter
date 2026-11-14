@@ -150,3 +150,30 @@ test('rehearsal counts steps and collects images', () => {
   assert.deepEqual(outline.last, { slide: 0, step: 1 })
   assert.deepEqual(images, ['/a.png'])
 })
+
+test('the presenter shows the notes of the slide on screen', () => {
+  const presenter = present(
+    ({ notes }) => {
+      notes(`
+        Start with a story.
+        Then the numbers.
+      `)
+      notes('Breathe.')
+    },
+    () => {},
+  )
+
+  assert.equal(presenter.notes, 'Start with a story.\nThen the numbers.\n\nBreathe.')
+  presenter.next()
+  assert.equal(presenter.notes, '')
+})
+
+test('rehearsal says which slide failed', () => {
+  const presentation = new Presentation('Test', [
+    new Slide('Fine', () => {}),
+    new Slide('Broken', () => {
+      throw new Error('oops')
+    }),
+  ])
+  assert.throws(() => rehearse(presentation), { message: 'Slide 2, "Broken", failed: oops' })
+})
