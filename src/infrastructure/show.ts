@@ -7,6 +7,7 @@ import { CanvasSurface } from './canvas-surface.ts'
 import { FieldOverlay } from './field-overlay.ts'
 import { ImageLibrary } from './image-library.ts'
 import { bindKeyboard } from './keyboard.ts'
+import { bindPointer } from './pointer.ts'
 import { formatRoute } from './route.ts'
 import { Viewport } from './viewport.ts'
 
@@ -28,6 +29,7 @@ export async function startShow(root: HTMLElement, { id, presentation }: Catalog
   })
 
   bindKeyboard(presenter)
+  bindPointer(root, presenter)
   presenter.goTo(position, { animate: true })
   everyFrame((seconds) => {
     presenter.tick(seconds)
