@@ -14,6 +14,7 @@ import type { Sketch } from './domain/scene/surface.ts'
 
 export type { Animation } from './domain/animation/animation.ts'
 export type { Easing } from './domain/animation/easing.ts'
+export type { MorphOptions, MorphStyle } from './domain/animation/morph.ts'
 export type { Element, Placement } from './domain/scene/element.ts'
 export type { FieldElement } from './domain/scene/field.ts'
 export type { SlideBuilder } from './domain/presentation/slide.ts'
