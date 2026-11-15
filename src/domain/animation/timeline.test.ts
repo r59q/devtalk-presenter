@@ -6,7 +6,7 @@ import { delay, parallel, sequence, stagger, wait } from './timeline.ts'
 import { animate, call } from './tween.ts'
 import { Scene } from '../scene/scene.ts'
 
-const context: AnimationContext = { scene: new Scene(), sampler: { spacing: 1, sample: () => [] } }
+const context: AnimationContext = { scene: new Scene(), sampler: { spacing: 1, sample: () => [], trace: () => [] } }
 const linear = { ease: ease.linear, duration: 1 }
 
 test('a sequence starts each animation from where the previous one left off', () => {

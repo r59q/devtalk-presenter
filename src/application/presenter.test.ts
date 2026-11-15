@@ -4,6 +4,7 @@ import { fadeIn, moveTo } from '../domain/animation/effects.ts'
 import { morph } from '../domain/animation/morph.ts'
 import type { Sampler } from '../domain/morph/sampler.ts'
 import type { PointCloud } from '../domain/morph/point-cloud.ts'
+import type { Figure } from '../domain/morph/silhouette.ts'
 import { Presentation } from '../domain/presentation/presentation.ts'
 import { Slide, type SlideScript } from '../domain/presentation/slide.ts'
 import { ImageElement } from '../domain/scene/image.ts'
@@ -13,9 +14,26 @@ import { TextElement } from '../domain/scene/text.ts'
 import { Presenter } from './presenter.ts'
 import { rehearse } from './rehearsal.ts'
 
+let traced = 0
+
 const sampler: Sampler = {
   spacing: 1,
   sample: (element) => [{ x: element.x, y: element.y, color: { r: 255, g: 255, b: 255, a: 1 } }],
+  // Every non-blank text traces as a 20 × 20 square around its position.
+  trace: (lines) =>
+    ++traced && lines.join('').trim() === ''
+      ? []
+      : [
+          {
+            outline: [
+              { x: -10, y: -10 },
+              { x: -10, y: 10 },
+              { x: 10, y: 10 },
+              { x: 10, y: -10 },
+            ],
+            holes: [],
+          },
+        ],
 }
 
 function present(...scripts: SlideScript[]): Presenter {
@@ -23,12 +41,14 @@ function present(...scripts: SlideScript[]): Presenter {
   return new Presenter({ presentation, outline: rehearse(presentation).outline, sampler })
 }
 
-/** A surface that only records the particle clouds drawn on it. */
-function particleRecorder(): Surface & { clouds: PointCloud[] } {
+/** A surface that only records the particle clouds and figures drawn on it. */
+function morphRecorder(): Surface & { clouds: PointCloud[]; drawnFigures: Figure[][] } {
   const clouds: PointCloud[] = []
+  const drawnFigures: Figure[][] = []
   const ignore = () => {}
   return {
     clouds,
+    drawnFigures,
     clear: ignore,
     place: (transform, paint) => transform.opacity > 0 && paint(),
     text: ignore,
@@ -37,6 +57,7 @@ function particleRecorder(): Surface & { clouds: PointCloud[] } {
     circle: ignore,
     line: ignore,
     particles: (cloud) => clouds.push(cloud),
+    figures: (figures) => drawnFigures.push([...figures]),
     sketch: ignore,
     field: ignore,
   }
@@ -109,12 +130,12 @@ test('a morph swaps one element for another through particles', () => {
   const presenter = present(({ add, enter }) => {
     from = add(new TextElement('Hello', { x: 0 }))
     to = new TextElement('World', { x: 100 })
-    enter(morph(from, to, { duration: 2 }))
+    enter(morph(from, to, { duration: 2, style: 'particles' }))
   })
 
   presenter.goTo({ slide: 0, step: 0 }, { animate: true })
   presenter.tick(1)
-  const surface = particleRecorder()
+  const surface = morphRecorder()
   presenter.draw(surface)
   const [cloud] = surface.clouds
   assert.ok(cloud, 'particles are drawn mid-morph')
@@ -123,6 +144,69 @@ test('a morph swaps one element for another through particles', () => {
   presenter.tick(1)
   assert.equal(from.opacity, 0)
   assert.equal(to.opacity, 1)
+})
+
+test('text morphs into text as filled shapes by default', () => {
+  let from = new TextElement('')
+  let to = new TextElement('')
+  const presenter = present(({ add, enter }) => {
+    from = add(new TextElement('Hello', { x: 0 }))
+    to = new TextElement('World', { x: 100, opacity: 0.8 })
+    enter(morph(from, to, { duration: 2 }))
+  })
+
+  presenter.goTo({ slide: 0, step: 0 }, { animate: true })
+  assert.equal(to.opacity, 0, 'to stays hidden until the morph plays')
+  presenter.tick(1)
+  const surface = morphRecorder()
+  presenter.draw(surface)
+  assert.equal(surface.clouds.length, 0, 'no particles')
+  const [figures] = surface.drawnFigures
+  assert.equal(figures.length, 1)
+  const left = Math.min(...figures[0].outline.map(({ x }) => x))
+  assert.ok(left > -10 && left < 90, 'the shape is on its way')
+  assert.equal(from.opacity, 0)
+  assert.equal(to.opacity, 0)
+
+  presenter.tick(1)
+  assert.equal(from.opacity, 0)
+  assert.equal(to.opacity, 0.8)
+  const after = morphRecorder()
+  presenter.draw(after)
+  assert.equal(after.drawnFigures.length, 0, 'nothing temporary is left in the scene')
+})
+
+test('jumping past a vector morph leaves only the new text, without tracing it', () => {
+  let from = new TextElement('')
+  let to = new TextElement('')
+  const presenter = present(({ add, step }) => {
+    from = add(new TextElement('Hello'))
+    to = new TextElement('')
+    step(morph(from, to))
+  })
+
+  const before = traced
+  presenter.goTo({ slide: 0, step: 1 })
+  assert.equal(traced, before)
+  assert.equal(from.opacity, 0)
+  assert.equal(to.opacity, 1)
+  const surface = morphRecorder()
+  presenter.draw(surface)
+  assert.equal(surface.drawnFigures.length, 0)
+})
+
+test('morphs that involve other elements than text use particles', () => {
+  const presenter = present(({ add, enter }) => {
+    const picture = add(new ImageElement('/a.png', { width: 10 }))
+    enter(morph(picture, new TextElement('Hi'), { duration: 2 }))
+  })
+
+  presenter.goTo({ slide: 0, step: 0 }, { animate: true })
+  presenter.tick(1)
+  const surface = morphRecorder()
+  presenter.draw(surface)
+  assert.equal(surface.clouds.length, 1)
+  assert.equal(surface.drawnFigures.length, 0)
 })
 
 test('answers typed into fields survive rebuilding the slide', () => {

@@ -1,6 +1,7 @@
 import type { Color } from '../geometry/color.ts'
 import type { Vector } from '../geometry/vector.ts'
 import type { PointCloud } from '../morph/point-cloud.ts'
+import type { Figure } from '../morph/silhouette.ts'
 import type { FieldElement } from './field.ts'
 
 export interface Transform {
@@ -53,6 +54,12 @@ export interface Surface {
   circle(radius: number, style: ShapeStyle): void
   line(from: Vector, to: Vector, style: LineStyle): void
   particles(cloud: PointCloud, size: number): void
+  /**
+   * Fills each figure's outline minus its holes. A hole only ever cuts its own figure, and
+   * the figures are combined before the opacity is applied, so where they overlap they do
+   * not show through each other. Their colours should be opaque.
+   */
+  figures(figures: readonly Figure[]): void
   sketch(draw: Sketch, time: number): void
   field(field: FieldElement): void
 }
