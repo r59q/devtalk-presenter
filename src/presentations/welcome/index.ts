@@ -63,15 +63,21 @@ export default presentation('Welcome to Devtalk Presenter', [
     notes('Speaker notes come from notes() in the slide script, just like these.')
   }),
 
-  slide('Text morphs into text', ({ add, enter, step }) => {
+  slide('Text morphs into text', ({ add, enter, step, notes }) => {
     const words = [
       text('Hello', { size: 220, weight: 800, color: palette.blue }),
       text('Bonjour', { size: 220, weight: 800, color: palette.purple }),
       text('Hola', { size: 220, weight: 800, color: palette.orange }),
       text('Hej!', { size: 220, weight: 800, color: palette.green }),
     ]
+    const last = words[words.length - 1]
     enter(fadeIn(add(words[0])))
     words.slice(1).forEach((word, index) => step(morph(words[index], word)))
+    step(morph(last, text('Ciao', { size: 220, weight: 800, color: palette.red }), { style: 'particles' }))
+    notes(`
+      The letters bend into each other as smooth shapes, sharp at any size.
+      The last step asks for particles instead, with { style: 'particles' }.
+    `)
   }),
 
   slide('Images morph too', ({ add, enter, step }) => {

@@ -1,7 +1,9 @@
 import { toCss, type Color } from '../domain/geometry/color.ts'
 import { clamp01 } from '../domain/geometry/numbers.ts'
 import type { Vector } from '../domain/geometry/vector.ts'
+import { bounds, type Contour } from '../domain/morph/contour.ts'
 import type { PointCloud } from '../domain/morph/point-cloud.ts'
+import type { Figure } from '../domain/morph/silhouette.ts'
 import type { FieldElement } from '../domain/scene/field.ts'
 import type { LineStyle, ShapeStyle, Sketch, Surface, TextStyle, Transform } from '../domain/scene/surface.ts'
 import type { FieldOverlay } from './field-overlay.ts'
@@ -12,6 +14,7 @@ export class CanvasSurface implements Surface {
   readonly #context: CanvasRenderingContext2D
   readonly #images: ImageLibrary
   readonly #fields: FieldOverlay | undefined
+  #layer: CanvasRenderingContext2D | undefined
 
   constructor(context: CanvasRenderingContext2D, images: ImageLibrary, fields?: FieldOverlay) {
     this.#context = context
@@ -92,6 +95,31 @@ export class CanvasSurface implements Surface {
     }
   }
 
+  figures(figures: readonly Figure[]): void {
+    const context = this.#context
+    const area = this.#pixelsCovered(figures)
+    if (!area) return
+    const layer = this.#layerLike(context.canvas)
+    layer.resetTransform()
+    layer.clearRect(area.x, area.y, area.width, area.height)
+    layer.setTransform(context.getTransform())
+    for (const { outline, holes, color } of figures) {
+      // Clipping to the outline keeps a hole from ever filling anything outside its own figure.
+      layer.save()
+      layer.beginPath()
+      trace(layer, outline)
+      layer.clip()
+      holes.forEach((hole) => trace(layer, hole))
+      layer.fillStyle = toCss(color)
+      layer.fill()
+      layer.restore()
+    }
+    context.save()
+    context.resetTransform()
+    context.drawImage(layer.canvas, area.x, area.y, area.width, area.height, area.x, area.y, area.width, area.height)
+    context.restore()
+  }
+
   sketch(draw: Sketch, time: number): void {
     this.#context.save()
     draw(this.#context, time)
@@ -115,6 +143,37 @@ export class CanvasSurface implements Surface {
     }
   }
 
+  /** A scratch canvas the size of `canvas`, on which figures are combined before they are shown. */
+  #layerLike(canvas: HTMLCanvasElement | OffscreenCanvas): CanvasRenderingContext2D {
+    if (!this.#layer) {
+      const context = document.createElement('canvas').getContext('2d')
+      if (!context) throw new Error('Canvas 2D is not supported')
+      this.#layer = context
+    }
+    const layer = this.#layer.canvas
+    if (layer.width !== canvas.width) layer.width = canvas.width
+    if (layer.height !== canvas.height) layer.height = canvas.height
+    return this.#layer
+  }
+
+  /** The canvas pixels the figures cover, or nothing if they are all off the canvas. */
+  #pixelsCovered(figures: readonly Figure[]): { x: number; y: number; width: number; height: number } | undefined {
+    const { canvas } = this.#context
+    const matrix = this.#context.getTransform()
+    const box = bounds(figures.flatMap(({ outline }) => outline))
+    const corners = [
+      { x: box.left, y: box.top },
+      { x: box.right, y: box.top },
+      { x: box.right, y: box.bottom },
+      { x: box.left, y: box.bottom },
+    ].map((corner) => matrix.transformPoint(corner))
+    const x = Math.max(0, Math.floor(Math.min(...corners.map((corner) => corner.x))) - 2)
+    const y = Math.max(0, Math.floor(Math.min(...corners.map((corner) => corner.y))) - 2)
+    const width = Math.min(canvas.width, Math.ceil(Math.max(...corners.map((corner) => corner.x))) + 2) - x
+    const height = Math.min(canvas.height, Math.ceil(Math.max(...corners.map((corner) => corner.y))) + 2) - y
+    return width > 0 && height > 0 ? { x, y, width, height } : undefined
+  }
+
   #arrowHead(from: Vector, to: Vector, size: number): void {
     const context = this.#context
     const angle = Math.atan2(to.y - from.y, to.x - from.x)
@@ -130,4 +189,9 @@ export class CanvasSurface implements Surface {
     context.closePath()
     context.fill()
   }
+}
+
+function trace(context: CanvasRenderingContext2D, contour: Contour): void {
+  contour.forEach(({ x, y }, index) => (index === 0 ? context.moveTo(x, y) : context.lineTo(x, y)))
+  context.closePath()
 }

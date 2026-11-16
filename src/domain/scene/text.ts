@@ -45,9 +45,13 @@ export class TextElement extends Element {
     return typeof this.content === 'function' ? this.content() : this.content
   }
 
-  protected paint(surface: Surface): void {
+  /** The lines as drawn right now, which leaves out characters not yet revealed. */
+  get visibleLines(): string[] {
     const characters = [...this.text]
-    const visible = characters.slice(0, Math.round(characters.length * this.reveal)).join('')
-    surface.text(visible.split('\n'), this)
+    return characters.slice(0, Math.round(characters.length * this.reveal)).join('').split('\n')
+  }
+
+  protected paint(surface: Surface): void {
+    surface.text(this.visibleLines, this)
   }
 }

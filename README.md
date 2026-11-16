@@ -4,7 +4,7 @@ Animated, interactive presentations for the browser, written as TypeScript scrip
 
 - **Slides are code.** A presentation is a plain `.ts` file, so you can review it, diff it, and let an AI agent help write it.
 - **Live reload.** Save a file and the browser reloads on the same step, then plays that step again.
-- **Morphs like manim.** Text morphs into text, images into text, and any element into any other.
+- **Morphs like manim.** The letters of one text bend into the next as smooth shapes, and images and any other element morph through particles.
 - **Interactive.** A slide can ask the audience a question, and the answer becomes part of the animation.
 - **Speaker view.** Notes, the next step and a timer in a second window that stays in step with the audience.
 - **No runtime dependencies.** The rendering, animation and morphing are written from scratch on the Canvas 2D API. Vite and TypeScript are only used during development.
@@ -117,13 +117,20 @@ Colours accept any CSS hex string, such as `'#58a6ff'`. `palette` has a matching
 | `fadeIn`, `popIn`, `slideIn(el, dx, dy)`    | Reveal an element. It stays hidden until the animation plays   |
 | `typewrite(text)`, `drawLine(line)`         | Reveal text or a line gradually                                |
 | `fadeOut`, `moveTo(el, x, y)`, `scaleTo`, `rotateTo`, `recolor` | Change an element                          |
-| `morph(from, to, { sweep })`                | Turn one element into another through particles                |
+| `morph(from, to, { sweep, style })`         | Turn one element into another. See below                       |
 | `animate(object, { prop: value })`          | Tween any number on any object                                 |
 | `tween((context) => (t) => …)`              | Write your own animation for `t` from 0 to 1                   |
 | `parallel`, `sequence`, `stagger(gap, …)`, `delay(s, a)`, `wait(s)` | Compose animations                     |
 | `call(fn)`                                  | Run code at a point in a timeline                              |
 
 Effects, `morph`, `animate` and `tween` take `{ duration, ease }`, where `ease` is one of `ease.linear`, `in`, `out`, `inOut`, `back` or `elastic`.
+
+`morph` adds `to` to the slide and keeps it hidden until the morph plays. When it ends, `from` is hidden and `to` is shown. How it looks in between depends on `style`:
+
+- `'vector'`, the default between two texts, bends the letters of one text into the letters of the other as smooth filled shapes. They stay sharp at any size and on any screen, and change colour on the way.
+- `'particles'` dissolves the element into dots that fly into the shape of the other one. Morphs that involve anything other than text, such as an image, always use particles, and TypeScript rejects `style: 'vector'` for them.
+
+`sweep` goes from 0, where everything moves at once, to 1, where the letters or particles set off one after another from left to right.
 
 `src/presentations/welcome/index.ts` shows every feature.
 
@@ -137,7 +144,7 @@ src/
     geometry/      numbers, colours, vectors
     animation/     Animation, tweens, timelines, effects, morph
     scene/         Element and its kinds, Scene, the Surface port
-    morph/         point clouds and the Sampler port
+    morph/         outlines, point clouds and the Sampler port
     presentation/  Presentation, Slide, Outline
   application/     Presenter (the use case of presenting), rehearsal, Catalog
   infrastructure/  canvas, keyboard and pointer, URL, input overlay, speaker view
@@ -148,7 +155,8 @@ src/
 
 - An **Animation** has a `duration`, a `start(context)` method and an `update(progress)` method. `update` is deterministic, so `update(1)` always produces the final state. This is how the presenter can jump to any step: it rebuilds the slide and finishes every earlier step instantly.
 - **Rehearsal** runs every slide script once at start-up. This counts the steps and collects the images to preload.
-- A **morph** samples both elements into point clouds and pairs the points from left to right. It then flies the particles from one shape to the other, cross-fading with the real elements at both ends.
+- A **vector morph** traces both texts through the Sampler: the canvas draws each text magnified, and marching squares turns its pixels into outlines with sub-pixel edges. Each outline is grouped with its holes into a piece, such as an "o" with its counter or the dot of an "i". Pieces are paired in reading order, splitting or merging when the counts differ. Each pair of outlines is resampled to the same number of points and aligned, and holes without a partner shrink to a point. Every frame blends the points and fills the shapes. They match the real texts at both ends, so the texts swap with them without a cross-fade. Traces are cached, and a jump past a morph traces nothing.
+- A **particle morph** samples both elements into point clouds and pairs the points from left to right. It then flies the particles from one shape to the other, cross-fading with the real elements at both ends.
 - The domain draws through the **Surface** port and samples through the **Sampler** port. The canvas implementations of both live in `infrastructure/`.
 
 ## License
